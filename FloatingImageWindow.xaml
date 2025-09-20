@@ -1,0 +1,40 @@
+﻿<Window x:Class="SnipasteOCR.FloatingImageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pinned Image"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        UseLayoutRounding="True"
+        KeyDown="Window_KeyDown">
+
+    <!-- 全局右键菜单 -->
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="💾 保存图片..." Click="SaveImage_Click"/>
+            <MenuItem Header="📋 复制到剪贴板" Click="CopyToClipboard_Click"/>
+            <Separator/>
+            <MenuItem Header="🔍 放大 (Ctrl +)" InputGestureText="Ctrl+Plus" Click="ZoomIn_Click"/>
+            <MenuItem Header="📉 缩小 (Ctrl -)" InputGestureText="Ctrl+Minus" Click="ZoomOut_Click"/>
+            <MenuItem Header="🔄 重置大小 (Ctrl+0)" InputGestureText="Ctrl+0" Click="ResetZoom_Click"/>
+            <Separator/>
+            <MenuItem Header="❌ 关闭" InputGestureText="Esc" Click="CloseWindow_Click"/>
+        </ContextMenu>
+    </Window.ContextMenu>
+
+    <!-- 可缩放容器 -->
+    <Border Background="#08FFFFFF" 
+            BorderBrush="#33FFFFFF" 
+            BorderThickness="1"
+            CornerRadius="2"
+            Padding="0">
+        <Viewbox x:Name="ZoomViewbox" Stretch="Uniform">
+            <Image x:Name="ImageControl"
+                   RenderOptions.BitmapScalingMode="HighQuality"
+                   ToolTip="滚动鼠标滚轮可缩放，右键菜单操作"/>
+        </Viewbox>
+    </Border>
+</Window>
