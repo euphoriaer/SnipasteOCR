@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace SnipasteOCR
 {
@@ -49,8 +50,7 @@ namespace SnipasteOCR
         // 处理鼠标滚轮缩放
         private void FloatingImageWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Control)
-            {
+         
                 e.Handled = true;
 
                 if (e.Delta > 0)
@@ -63,14 +63,59 @@ namespace SnipasteOCR
                 }
 
                 ApplyZoom();
-            }
+            
         }
 
         private void ApplyZoom()
         {
             _zoomFactor = Math.Max(0.1, Math.Min(_zoomFactor, 10.0)); // 限制缩放范围
-            
+
+            // ✅ 1. 设置缩放变换：以左上角 (0,0) 为中心
+            var transform = new ScaleTransform(_zoomFactor, _zoomFactor)
+            {
+                CenterX = 0,
+                CenterY = 0
+            };
+
+            // ✅ 2. 更新窗口大小
+            if (Image != null)
+            {
+                double newWidth = Image.PixelWidth * _zoomFactor;
+                double newHeight = Image.PixelHeight * _zoomFactor;
+
+                this.Width = newWidth;
+                this.Height = newHeight;
+            }
+            ImageControl.RenderTransformOrigin = new Point(0, 0); // 确保变换原点是左上角
+            ImageControl.RenderTransform = transform;
+
+            // ✅ 3. 可选：显示缩放百分比（右上角）
+            ShowZoomPercentage((int)(_zoomFactor * 100));
         }
+
+        private void ShowZoomPercentage(int percentage)
+        {
+            ZoomPercentageText.Text = $"{percentage}%";
+            ZoomPercentageText.Visibility = Visibility.Visible;
+
+            // 清除之前的定时器
+            if (_zoomTimer != null)
+            {
+                _zoomTimer.Stop();
+                _zoomTimer = null;
+            }
+
+            _zoomTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            _zoomTimer.Tick += (s, e) =>
+            {
+                ZoomPercentageText.Visibility = Visibility.Collapsed;
+                _zoomTimer.Stop();
+                _zoomTimer = null;
+            };
+            _zoomTimer.Start();
+        }
+
+        private DispatcherTimer _zoomTimer;
 
         // 拖拽移动窗口
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -88,15 +133,15 @@ namespace SnipasteOCR
             {
                 this.Close();
             }
-            else if (e.Key == Key.OemPlus && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            else if (e.Key == Key.OemPlus)
             {
                 ZoomIn_Click(sender, e);
             }
-            else if (e.Key == Key.OemMinus && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            else if (e.Key == Key.OemMinus )
             {
                 ZoomOut_Click(sender, e);
             }
-            else if (e.Key == Key.D0 && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            else if (e.Key == Key.D0)
             {
                 ResetZoom_Click(sender, e);
             }

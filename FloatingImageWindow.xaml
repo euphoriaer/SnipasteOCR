@@ -17,19 +17,34 @@
             <MenuItem Header="💾 保存图片..." Click="SaveImage_Click"/>
             <MenuItem Header="📋 复制到剪贴板" Click="CopyToClipboard_Click"/>
             <Separator/>
-            <MenuItem Header="🔍 放大 (Ctrl +)" InputGestureText="Ctrl+Plus" Click="ZoomIn_Click"/>
-            <MenuItem Header="📉 缩小 (Ctrl -)" InputGestureText="Ctrl+Minus" Click="ZoomOut_Click"/>
+            <MenuItem Header="🔍 放大" InputGestureText="Plus" Click="ZoomIn_Click"/>
+            <MenuItem Header="📉 缩小" InputGestureText="Minus" Click="ZoomOut_Click"/>
             <MenuItem Header="🔄 重置大小 (Ctrl+0)" InputGestureText="Ctrl+0" Click="ResetZoom_Click"/>
             <Separator/>
             <MenuItem Header="❌ 关闭" InputGestureText="Esc" Click="CloseWindow_Click"/>
         </ContextMenu>
     </Window.ContextMenu>
 
-    <Border Background="Transparent" Padding="0">
-        <Image x:Name="ImageControl"
-           RenderOptions.BitmapScalingMode="NearestNeighbor"
-           Stretch="None"
-           SnapsToDevicePixels="True"
-           ToolTip="右键菜单操作"/>
-    </Border>
+    <Grid>
+        <!-- 图像 -->
+        <Border Background="Transparent" Padding="0">
+            <Image x:Name="ImageControl"
+                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                   Stretch="None"
+                   SnapsToDevicePixels="True"
+                   ToolTip="右键菜单操作"/>
+        </Border>
+
+        <!-- 缩放百分比提示 -->
+        <TextBlock x:Name="ZoomPercentageText"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Margin="10"
+                   FontSize="14"
+                   Foreground="White"
+                   Background="#CC000000"
+                   Padding="5,2"
+                   Opacity="0.9"
+                   Visibility="Collapsed"/>
+    </Grid>
 </Window>
