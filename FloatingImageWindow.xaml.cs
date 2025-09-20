@@ -213,5 +213,45 @@ namespace SnipasteOCR
         {
             this.Close();
         }
+
+        private void ShowOcrResult(string text)
+        {
+            var popup = new TextPopupWindow(text);
+            popup.Owner = this; // 可选：设置所有者
+            popup.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            popup.Show(); // 非模态显示
+        }
+
+        private async void OcrRecognize_Click(object sender, RoutedEventArgs e)
+        {
+            if (Image == null) return;
+
+            // 显示“正在识别”提示（可选）
+            var progressWindow = new TextPopupWindow("正在识别文字...");
+            progressWindow.Show();
+
+            try
+            {
+                // 调用 OCR
+                string result = await OcrHelper.Recognize(Image);
+
+                // 关闭进度提示
+                progressWindow.Close();
+
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    MessageBox.Show("未识别到任何文字。", "OCR 结果", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // 显示识别结果（富文本）
+                ShowOcrResult(result);
+            }
+            catch (Exception ex)
+            {
+                progressWindow.Close();
+                MessageBox.Show($"OCR 识别失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }
