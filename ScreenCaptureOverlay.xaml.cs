@@ -1,5 +1,4 @@
-﻿using SnipasteLikeApp.Utils;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,23 +9,30 @@ namespace SnipasteOCR
 {
     public partial class ScreenCaptureOverlay : Window
     {
-
-        private Point _startPoint;
-        private Point _endPoint;
+        private Point? _startPoint;
         private bool _isSelecting = false;
 
-        public event Action<BitmapSource,Rect> OnCaptureCompleted;
+        public event Action<BitmapSource, Rect> OnCaptureCompleted;
 
         public ScreenCaptureOverlay()
         {
             InitializeComponent();
-            Left = 0;
-            Top = 0;
-            Width = SystemParameters.VirtualScreenWidth;
-            Height = SystemParameters.VirtualScreenHeight;
+
+            // 使用 SystemInformation 获取真实屏幕坐标（推荐）
+            // 如果不想引用 WinForms，请用 SystemParameters（注意 DPI 问题）
+            var screenWidth = SystemParameters.VirtualScreenWidth;
+            var screenHeight = SystemParameters.VirtualScreenHeight;
+
+            this.Left = 0;
+            this.Top = 0;
+            this.Width = screenWidth;
+            this.Height = screenHeight;
+
+            // 初始化遮罩
+            this.Loaded += (s, e) => UpdateHoleMask();
         }
 
-        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
@@ -35,29 +41,32 @@ namespace SnipasteOCR
             }
         }
 
-        private void Border_MouseMove(object sender, MouseEventArgs e)
+        private void Window_MouseMove(object sender, MouseEventArgs e)
         {
             if (!_isSelecting) return;
 
-            _endPoint = e.GetPosition(this);
+            var point = e.GetPosition(this);
 
-            double x = Math.Min(_startPoint.X, _endPoint.X);
-            double y = Math.Min(_startPoint.Y, _endPoint.Y);
-            double width = Math.Abs(_startPoint.X - _endPoint.X);
-            double height = Math.Abs(_startPoint.Y - _endPoint.Y);
+            double x = Math.Min(_startPoint.Value.X, point.X);
+            double y = Math.Min(_startPoint.Value.Y, point.Y);
+            double width = Math.Abs(_startPoint.Value.X - point.X);
+            double height = Math.Abs(_startPoint.Value.Y - point.Y);
 
-            SelectionRect.SetValue(Canvas.LeftProperty, x);
-            SelectionRect.SetValue(Canvas.TopProperty, y);
+            // 更新选区
+            Canvas.SetLeft(SelectionRect, x);
+            Canvas.SetTop(SelectionRect, y);
             SelectionRect.Width = width;
             SelectionRect.Height = height;
             SelectionRect.Visibility = Visibility.Visible;
 
+            // 更新尺寸
             SizeText.Text = $"{(int)width} × {(int)height}";
-            SizeText.SetValue(Canvas.LeftProperty, x);
-            SizeText.SetValue(Canvas.TopProperty, y - 15);
+            Canvas.SetLeft(SizeText, x);
+            Canvas.SetTop(SizeText, y - 25);
             SizeText.Visibility = Visibility.Visible;
 
-            UpdateMask(x, y, width, height);
+            // 更新“挖孔”遮罩
+            UpdateHoleMask(x, y, width, height);
         }
 
         private void Border_MouseUp(object sender, MouseButtonEventArgs e)
@@ -70,7 +79,7 @@ namespace SnipasteOCR
                 if (rect.Width > 5 && rect.Height > 5)
                 {
                     var bitmap = ScreenCaptureHelper.CaptureRegion(rect);
-                    OnCaptureCompleted?.Invoke(bitmap,rect);
+                    OnCaptureCompleted?.Invoke(bitmap, rect);
                 }
 
                 Close();
@@ -81,37 +90,34 @@ namespace SnipasteOCR
         {
             if (e.Key == Key.Escape)
             {
-                OnCaptureCompleted?.Invoke(null,Rect.Empty);
+                OnCaptureCompleted?.Invoke(null, Rect.Empty);
                 Close();
             }
         }
 
-        private void UpdateMask(double x, double y, double width, double height)
+        // 创建“挖孔”遮罩：全屏暗色，中间挖出选区
+        private void UpdateHoleMask(double x = 0, double y = 0, double width = 0, double height = 0)
         {
-            var regions = new[]
-            {
-                new Rect(0, 0, Width, y),
-                new Rect(0, y, x, height),
-                new Rect(x + width, y, Width - x - width, height),
-                new Rect(0, y + height, Width, Height - y - height)
-            };
+            var fullRect = new Rect(0, 0, this.ActualWidth, this.ActualHeight);
+            var selectionRect = new Rect(x, y, width, height);
 
-            var geometry = new CombinedGeometry();
-            foreach (var r in regions)
-            {
-                geometry = new CombinedGeometry(GeometryCombineMode.Union, geometry, new RectangleGeometry(r));
-            }
+            var combined = new CombinedGeometry(
+                GeometryCombineMode.Exclude,
+                new RectangleGeometry(fullRect),
+                new RectangleGeometry(selectionRect)
+            );
 
-            Mask.Clip = geometry;
+            HoleMask.Data = combined;
         }
 
         private Rect GetSelectionRect()
         {
-            double x = Math.Min(_startPoint.X, _endPoint.X);
-            double y = Math.Min(_startPoint.Y, _endPoint.Y);
-            double width = Math.Abs(_startPoint.X - _endPoint.X);
-            double height = Math.Abs(_startPoint.Y - _endPoint.Y);
-            return new Rect(x, y, width, height);
+            return new Rect(
+                Canvas.GetLeft(SelectionRect),
+                Canvas.GetTop(SelectionRect),
+                SelectionRect.Width,
+                SelectionRect.Height
+            );
         }
     }
 }

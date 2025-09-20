@@ -26,8 +26,8 @@
     </Window.ContextMenu>
 
     <!-- 可缩放容器 -->
-    <Border Background="#08FFFFFF" 
-            BorderBrush="#33FFFFFF" 
+    <Border Background="Transparent" 
+            BorderBrush="Transparent" 
             BorderThickness="1"
             CornerRadius="2"
             Padding="0">

@@ -7,14 +7,28 @@
         Topmost="True"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        KeyDown="Window_KeyDown">
-    <Border Background="#80000000" MouseDown="Border_MouseDown" MouseMove="Border_MouseMove" MouseUp="Border_MouseUp">
-        <Canvas Name="OverlayCanvas">
-            <!-- 半透明遮罩 -->
-            <Rectangle Name="Mask" Fill="#80000000" />
-            <!-- 显示选中区域 -->
-            <Rectangle Name="SelectionRect" Stroke="Red" StrokeDashArray="4 2" StrokeThickness="2" Visibility="Collapsed" />
-            <TextBlock Name="SizeText" Foreground="White" FontSize="12" Visibility="Collapsed"/>
-        </Canvas>
-    </Border>
+        KeyDown="Window_KeyDown"
+        MouseDown="Window_MouseDown"
+        MouseMove="Window_MouseMove"
+        MouseUp="Border_MouseUp">
+
+    <Canvas Name="OverlayCanvas">
+        <!-- 挖孔遮罩：全屏暗色，中间“挖出”选区 -->
+        <Path Name="HoleMask" Fill="#80000000" />
+
+        <!-- 选区边框 -->
+        <Rectangle Name="SelectionRect"
+                   Stroke="White"
+                   StrokeThickness="2"
+                   StrokeDashArray="4 2"
+                   Visibility="Collapsed" />
+
+        <!-- 尺寸提示 -->
+        <TextBlock Name="SizeText"
+                   Foreground="White"
+                   Background="#CC333333"
+                   Padding="4"
+                   FontSize="12"
+                   Visibility="Collapsed" />
+    </Canvas>
 </Window>

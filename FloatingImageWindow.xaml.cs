@@ -1,6 +1,4 @@
-﻿// File: FloatingImageWindow.xaml.cs
-
-using System;
+﻿using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,18 +15,16 @@ namespace SnipasteOCR
 
         public BitmapSource Image => ImageControl.Source as BitmapSource;
 
-        // ✅ 新增：构造函数支持传入屏幕坐标
-        public FloatingImageWindow(BitmapSource image,Rect rect)
+        // 构造函数，接收图像和屏幕矩形
+        public FloatingImageWindow(BitmapSource image, Rect screenRect)
         {
             InitializeComponent();
 
-            ImageControl.Source = image;
-
             // 设置窗口位置
-            this.Left = rect.Left;
-            this.Top = rect.Top;
+            this.Left = screenRect.X;
+            this.Top = screenRect.Y;
 
-            // 设置窗口大小为截图原始尺寸（考虑 DPI）
+            // 设置窗口大小为原始像素尺寸（考虑 DPI）
             if (image != null)
             {
                 double dpiScaleX = image.DpiX / 96.0;
@@ -41,41 +37,72 @@ namespace SnipasteOCR
                 this.Height = height;
             }
 
-            // 滚轮缩放
-            this.PreviewMouseWheel += (s, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    e.Handled = true;
-                    _zoomFactor = e.Delta > 0 ? _zoomFactor * ZoomStep : _zoomFactor / ZoomStep;
-                    _zoomFactor = Math.Max(0.1, Math.Min(_zoomFactor, 10.0));
-                    ZoomViewbox.LayoutTransform = new ScaleTransform(_zoomFactor, _zoomFactor);
-                }
-            };
+            // 设置图像源
+            ImageControl.Source = image;
 
-            // 左键拖拽移动
-            this.MouseDown += (s, e) =>
-            {
-                if (e.LeftButton == MouseButtonState.Pressed)
-                {
-                    this.DragMove();
-                }
-            };
-
-            // ESC 关闭
-            this.KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape)
-                {
-                    this.Close();
-                }
-            };
+            // 注册事件
+            this.PreviewMouseWheel += FloatingImageWindow_PreviewMouseWheel;
+            this.MouseDown += Window_MouseDown;
+            this.KeyDown += Window_KeyDown; // 确保注册了 KeyDown 事件
         }
 
-        // -----------------------------
-        // 菜单事件（保持不变）
-        // -----------------------------
+        // 处理鼠标滚轮缩放
+        private void FloatingImageWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                e.Handled = true;
 
+                if (e.Delta > 0)
+                {
+                    _zoomFactor *= ZoomStep;
+                }
+                else
+                {
+                    _zoomFactor /= ZoomStep;
+                }
+
+                ApplyZoom();
+            }
+        }
+
+        private void ApplyZoom()
+        {
+            _zoomFactor = Math.Max(0.1, Math.Min(_zoomFactor, 10.0)); // 限制缩放范围
+            ZoomViewbox.LayoutTransform = new ScaleTransform(_zoomFactor, _zoomFactor);
+        }
+
+        // 拖拽移动窗口
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left && e.ButtonState == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
+
+        // ESC 键关闭窗口
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                this.Close();
+            }
+            else if (e.Key == Key.OemPlus && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                ZoomIn_Click(sender, e);
+            }
+            else if (e.Key == Key.OemMinus && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                ZoomOut_Click(sender, e);
+            }
+            else if (e.Key == Key.D0 && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                ResetZoom_Click(sender, e);
+            }
+        }
+
+        // 菜单点击事件处理
         private void SaveImage_Click(object sender, RoutedEventArgs e)
         {
             var sfd = new Microsoft.Win32.SaveFileDialog
@@ -122,48 +149,24 @@ namespace SnipasteOCR
         private void ZoomIn_Click(object sender, RoutedEventArgs e)
         {
             _zoomFactor *= ZoomStep;
-            _zoomFactor = Math.Max(0.1, Math.Min(_zoomFactor, 10.0));
-            ZoomViewbox.LayoutTransform = new ScaleTransform(_zoomFactor, _zoomFactor);
+            ApplyZoom();
         }
 
         private void ZoomOut_Click(object sender, RoutedEventArgs e)
         {
             _zoomFactor /= ZoomStep;
-            _zoomFactor = Math.Max(0.1, Math.Min(_zoomFactor, 10.0));
-            ZoomViewbox.LayoutTransform = new ScaleTransform(_zoomFactor, _zoomFactor);
+            ApplyZoom();
         }
 
         private void ResetZoom_Click(object sender, RoutedEventArgs e)
         {
             _zoomFactor = 1.0;
-            ZoomViewbox.LayoutTransform = new ScaleTransform(1.0, 1.0);
+            ApplyZoom();
         }
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
-
-        // ESC 键关闭窗口
-        private void Window_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Escape)
-            {
-                this.Close();
-            }
-            else if (e.Key == Key.OemPlus && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
-            {
-                ZoomIn_Click(sender, e);
-            }
-            else if (e.Key == Key.OemMinus && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
-            {
-                ZoomOut_Click(sender, e);
-            }
-            else if (e.Key == Key.D0 && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
-            {
-                ResetZoom_Click(sender, e);
-            }
-        }
-
     }
 }
