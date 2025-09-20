@@ -16,14 +16,13 @@
         <!-- 挖孔遮罩：全屏暗色，中间“挖出”选区 -->
         <Path Name="HoleMask" Fill="#80000000" />
 
-        <!-- 选区边框 -->
         <Rectangle Name="SelectionRect"
-                   Stroke="White"
-                   StrokeThickness="2"
-                   StrokeDashArray="4 2"
-                   Visibility="Collapsed" />
+           Stroke="#80FFFFFF"
+            StrokeThickness="1"
+            StrokeDashArray="3 1"
+           Visibility="Collapsed" />
 
-        <!-- 尺寸提示 -->
+            <!-- 尺寸提示 -->
         <TextBlock Name="SizeText"
                    Foreground="White"
                    Background="#CC333333"

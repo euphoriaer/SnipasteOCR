@@ -85,6 +85,10 @@ namespace SnipasteOCR
                 _isSelecting = false;
 
                 var rect = GetSelectionRect();
+
+                // ✅ 向内收缩 1px，避开边框
+                rect.Inflate(-1, -1);
+
                 if (rect.Width > 5 && rect.Height > 5)
                 {
                     var bitmap = ScreenCaptureHelper.CaptureRegion(rect);
