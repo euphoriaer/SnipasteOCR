@@ -79,14 +79,14 @@ public static class OcrHelper
             // 判断是否换行（段落）
             if (lastY.HasValue && (currentY - lastY.Value) > lineSpacingThreshold)
             {
-                lines.Add(""); // 换段
+                lines.Add("\n\n"); // 换段同时换行
             }
 
             lines.Add(text);
             lastY = currentY;
         }
 
-        return string.Join("\n", lines);
+        return string.Join("    ", lines);
     }
 
     /// <summary>
