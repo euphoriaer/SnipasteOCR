@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -30,6 +31,10 @@ namespace SnipasteOCR
             {
                 if (image != null)
                 {
+
+                    Debug.WriteLine($"screenRect: {rect}");
+                    Debug.WriteLine($"Image Size: {image.PixelWidth}x{image.PixelHeight}");
+
                     var floating = new FloatingImageWindow(image, rect);
                     floating.Show();
                 }

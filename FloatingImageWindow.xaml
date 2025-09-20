@@ -25,16 +25,11 @@
         </ContextMenu>
     </Window.ContextMenu>
 
-    <!-- 可缩放容器 -->
-    <Border Background="Transparent" 
-            BorderBrush="Transparent" 
-            BorderThickness="1"
-            CornerRadius="2"
-            Padding="0">
-        <Viewbox x:Name="ZoomViewbox" Stretch="Uniform">
-            <Image x:Name="ImageControl"
-                   RenderOptions.BitmapScalingMode="HighQuality"
-                   ToolTip="滚动鼠标滚轮可缩放，右键菜单操作"/>
-        </Viewbox>
+    <Border Background="Transparent" Padding="0">
+        <Image x:Name="ImageControl"
+           RenderOptions.BitmapScalingMode="NearestNeighbor"
+           Stretch="None"
+           SnapsToDevicePixels="True"
+           ToolTip="右键菜单操作"/>
     </Border>
 </Window>

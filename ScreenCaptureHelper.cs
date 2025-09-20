@@ -141,4 +141,57 @@ public static class ScreenCaptureHelper
 
         return result;
     }
+
+    /// <summary>
+    /// 截取全屏（返回冻结的 BitmapSource）
+    /// </summary>
+    public static BitmapSource CaptureFullScreen()
+    {
+        IntPtr deskHwnd = GetDesktopWindow();
+        IntPtr deskHdc = GetWindowDC(deskHwnd);
+        if (deskHdc == IntPtr.Zero) return null;
+
+        IntPtr memHdc = IntPtr.Zero;
+        IntPtr hBitmap = IntPtr.Zero;
+        IntPtr hOldObj = IntPtr.Zero;
+        BitmapSource result = null;
+
+        try
+        {
+            int width = (int)SystemParameters.VirtualScreenWidth;
+            int height = (int)SystemParameters.VirtualScreenHeight;
+
+            memHdc = CreateCompatibleDC(deskHdc);
+            hBitmap = CreateCompatibleBitmap(deskHdc, width, height);
+            if (hBitmap == IntPtr.Zero) return null;
+
+            hOldObj = SelectObject(memHdc, hBitmap);
+
+            // ✅ 关键：立即复制全屏，画面“冻结”
+            bool success = BitBlt(memHdc, 0, 0, width, height, deskHdc, 0, 0, SRCCOPY);
+            if (!success) return null;
+
+            // 转为 WPF 图像并冻结
+            result = Imaging.CreateBitmapSourceFromHBitmap(
+                hBitmap,
+                IntPtr.Zero,
+                Int32Rect.Empty,
+                BitmapSizeOptions.FromWidthAndHeight(width, height));
+
+            result.Freeze(); // ✅ 支持跨线程
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"全屏截图失败: {ex.Message}");
+        }
+        finally
+        {
+            if (hOldObj != IntPtr.Zero) SelectObject(memHdc, hOldObj);
+            if (hBitmap != IntPtr.Zero) DeleteObject(hBitmap);
+            if (memHdc != IntPtr.Zero) DeleteDC(memHdc);
+            if (deskHdc != IntPtr.Zero) ReleaseDC(deskHwnd, deskHdc);
+        }
+
+        return result;
+    }
 }

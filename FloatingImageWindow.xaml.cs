@@ -69,7 +69,7 @@ namespace SnipasteOCR
         private void ApplyZoom()
         {
             _zoomFactor = Math.Max(0.1, Math.Min(_zoomFactor, 10.0)); // 限制缩放范围
-            ZoomViewbox.LayoutTransform = new ScaleTransform(_zoomFactor, _zoomFactor);
+            
         }
 
         // 拖拽移动窗口

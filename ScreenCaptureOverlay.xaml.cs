@@ -11,7 +11,8 @@ namespace SnipasteOCR
     {
         private Point? _startPoint;
         private bool _isSelecting = false;
-
+        private BitmapSource _frozenBackground; // ✅ 保存冻结画面
+        public bool IsFrozenScreen=true;
         public event Action<BitmapSource, Rect> OnCaptureCompleted;
 
         public ScreenCaptureOverlay()
@@ -22,6 +23,14 @@ namespace SnipasteOCR
             // 如果不想引用 WinForms，请用 SystemParameters（注意 DPI 问题）
             var screenWidth = SystemParameters.VirtualScreenWidth;
             var screenHeight = SystemParameters.VirtualScreenHeight;
+
+            // ✅ 设置冻结画面为窗口背景
+            if(IsFrozenScreen)
+            {
+                _frozenBackground = ScreenCaptureHelper.CaptureFullScreen();
+                this.Background = new ImageBrush(_frozenBackground);
+            }
+            
 
             this.Left = 0;
             this.Top = 0;
