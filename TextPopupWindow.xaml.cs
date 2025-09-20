@@ -16,6 +16,11 @@ namespace SnipasteOCR
             MessageBox.Show("已复制到剪贴板", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        public void SetText(string text)
+        {
+            ResultTextBox.Text = text;
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             this.Close();

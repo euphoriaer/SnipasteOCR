@@ -50,20 +50,20 @@ namespace SnipasteOCR
         // 处理鼠标滚轮缩放
         private void FloatingImageWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-         
-                e.Handled = true;
 
-                if (e.Delta > 0)
-                {
-                    _zoomFactor *= ZoomStep;
-                }
-                else
-                {
-                    _zoomFactor /= ZoomStep;
-                }
+            e.Handled = true;
 
-                ApplyZoom();
-            
+            if (e.Delta > 0)
+            {
+                _zoomFactor *= ZoomStep;
+            }
+            else
+            {
+                _zoomFactor /= ZoomStep;
+            }
+
+            ApplyZoom();
+
         }
 
         private void ApplyZoom()
@@ -137,7 +137,7 @@ namespace SnipasteOCR
             {
                 ZoomIn_Click(sender, e);
             }
-            else if (e.Key == Key.OemMinus )
+            else if (e.Key == Key.OemMinus)
             {
                 ZoomOut_Click(sender, e);
             }
@@ -214,29 +214,30 @@ namespace SnipasteOCR
             this.Close();
         }
 
-        private void ShowOcrResult(string text)
+        private TextPopupWindow ShowOcrResult(string text)
         {
             var popup = new TextPopupWindow(text);
             popup.Owner = this; // 可选：设置所有者
             popup.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            popup.Show(); // 非模态显示
+            popup.Show(); // 非模态，允许其他操作
+            return popup;
         }
 
         private async void OcrRecognize_Click(object sender, RoutedEventArgs e)
         {
             if (Image == null) return;
 
-            // 显示“正在识别”提示（可选）
-            var progressWindow = new TextPopupWindow("正在识别文字...");
-            progressWindow.Show();
+            // ✅ 1. 显示“正在识别”提示（非模态）
+            var progressPopup = ShowOcrResult("正在识别文字..."); 
+            
 
             try
             {
-                // 调用 OCR
+                // ✅ 2. 异步调用 OCR（已在后台线程）
                 string result = await OcrHelper.Recognize(Image);
 
-                // 关闭进度提示
-                progressWindow.Close();
+                // ✅ 3. 关闭进度提示
+                
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
@@ -244,13 +245,15 @@ namespace SnipasteOCR
                     return;
                 }
 
-                // 显示识别结果（富文本）
-                ShowOcrResult(result);
+                // ✅ 4. 显示结果（富文本）
+                progressPopup.SetText(result);
+
             }
             catch (Exception ex)
             {
-                progressWindow.Close();
-                MessageBox.Show($"OCR 识别失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                progressPopup.Close();
+                MessageBox.Show($"OCR 识别失败：{ex.Message}\n\n详情：{ex.InnerException?.Message}",
+                               "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

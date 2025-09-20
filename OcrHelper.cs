@@ -12,41 +12,42 @@ using System.Windows.Media.Imaging;
 
 public static class OcrHelper
 {
+    /// <summary>
+    /// 异步执行 OCR 识别（在后台线程运行）
+    /// </summary>
     public static async Task<string> Recognize(BitmapSource bitmap)
     {
-        // TODO: 替换为您实际的 OCR 实现
-        // 示例：Tesseract、Windows.Media.Ocr、PaddleOCR SDK 等
+        if (bitmap == null)
+            throw new ArgumentNullException(nameof(bitmap));
 
-        FullOcrModel model = LocalFullModels.ChineseV5;
-
-        byte[] sampleImageData = BitmapSourceToByteArray(bitmap);
-
-
-        using (PaddleOcrAll all = new PaddleOcrAll(model, PaddleDevice.Mkldnn())
+        // 将整个 OCR 流程放到后台线程
+        return await Task.Run(() =>
         {
-            AllowRotateDetection = true, /* 允许识别有角度的文字 */
-            Enable180Classification = false, /* 允许识别旋转角度大于90度的文字 */
-        })
-        {
-            // Load local file by following code:
-            // using (Mat src2 = Cv2.ImRead(@"C:\test.jpg"))
-            using (Mat src = Cv2.ImDecode(sampleImageData, ImreadModes.Color))
+            try
             {
-                PaddleOcrResult result = all.Run(src);
-                Console.WriteLine("Detected all texts: \n" + result.Text);
+                FullOcrModel model = LocalFullModels.ChineseV5;
+                byte[] sampleImageData = BitmapSourceToByteArray(bitmap);
 
-                // ✅ 返回识别文本，而不是打印到控制台
-                return FormatOcrResult(result);
-
-                //foreach (PaddleOcrResultRegion region in result.Regions)
-                //{
-                //    Console.WriteLine($"Text: {region.Text}, Score: {region.Score}, RectCenter: {region.Rect.Center}, RectSize:    {region.Rect.Size}, Angle: {region.Rect.Angle}");
-                //}
+                using (PaddleOcrAll all = new PaddleOcrAll(model, PaddleDevice.Mkldnn())
+                {
+                    AllowRotateDetection = true,
+                    Enable180Classification = false,
+                })
+                using (Mat src = Cv2.ImDecode(sampleImageData, ImreadModes.Color))
+                {
+                    // ✅ 同步调用，但在后台线程，不会卡 UI
+                    PaddleOcrResult result = all.Run(src);
+                    return FormatOcrResult(result);
+                }
             }
-        }
-
-
+            catch (Exception ex)
+            {
+                // 捕获异常并抛出，以便上层处理
+                throw new InvalidOperationException("OCR 识别失败", ex);
+            }
+        });
     }
+
 
     /// <summary>
     /// 格式化 OCR 结果，保留段落结构
