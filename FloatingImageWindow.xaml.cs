@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -13,6 +14,7 @@ namespace SnipasteOCR
     {
         private double _zoomFactor = 1.0;
         private const double ZoomStep = 1.2;
+        private Rect _rect;
 
         public BitmapSource Image => ImageControl.Source as BitmapSource;
 
@@ -21,10 +23,13 @@ namespace SnipasteOCR
         {
             InitializeComponent();
 
+            // ✅ 确保阴影默认开启（即使 XAML 已设置）
+            ToggleGlowMenuItem.IsChecked = true;
+
             // 设置窗口位置
             this.Left = screenRect.X;
             this.Top = screenRect.Y;
-
+            _rect=screenRect;
             // 设置窗口大小为原始像素尺寸（考虑 DPI）
             if (image != null)
             {
@@ -85,10 +90,12 @@ namespace SnipasteOCR
 
                 this.Width = newWidth;
                 this.Height = newHeight;
+                this.Left = _rect.X;
+                this.Top = _rect.Y;
             }
             ImageControl.RenderTransformOrigin = new Point(0, 0); // 确保变换原点是左上角
             ImageControl.RenderTransform = transform;
-
+            
             // ✅ 3. 可选：显示缩放百分比（右上角）
             ShowZoomPercentage((int)(_zoomFactor * 100));
         }
@@ -254,6 +261,22 @@ namespace SnipasteOCR
                 progressPopup.Close();
                 MessageBox.Show($"OCR 识别失败：{ex.Message}\n\n详情：{ex.InnerException?.Message}",
                                "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        // 右键菜单：切换边缘阴影
+        private void ToggleGlow_Click(object sender, RoutedEventArgs e)
+        {
+            bool showGlow = ToggleGlowMenuItem.IsChecked;
+
+            if (showGlow)
+            {
+                GlowBorder.Effect = FindResource("GlowEffect") as DropShadowEffect;
+            }
+            else
+            {
+                GlowBorder.Effect = null;
             }
         }
     }

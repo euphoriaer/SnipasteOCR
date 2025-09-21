@@ -11,10 +11,19 @@
         UseLayoutRounding="True"
         KeyDown="Window_KeyDown">
 
+    <!-- 定义蓝色外发光效果（默认开启） -->
+    <Window.Resources>
+        <DropShadowEffect x:Key="GlowEffect"
+                          Color="#409EFF"
+                          ShadowDepth="0"
+                          BlurRadius="5"
+                          Opacity="0.9"/>
+    </Window.Resources>
+
     <!-- 全局右键菜单 -->
     <Window.ContextMenu>
         <ContextMenu>
-            <MenuItem Header="💾 保存图片..." Click="SaveImage_Click"/>
+            <MenuItem Header="💾 保存图片11..." Click="SaveImage_Click"/>
             <MenuItem Header="📖 OCR 识别" Click="OcrRecognize_Click"/>
             <MenuItem Header="📋 复制到剪贴板" Click="CopyToClipboard_Click"/>
             <Separator/>
@@ -22,18 +31,30 @@
             <MenuItem Header="📉 缩小" InputGestureText="Minus" Click="ZoomOut_Click"/>
             <MenuItem Header="🔄 重置大小 (Ctrl+0)" InputGestureText="Ctrl+0" Click="ResetZoom_Click"/>
             <Separator/>
+            <!-- 新增：显示边缘阴影 菜单项 -->
+            <MenuItem x:Name="ToggleGlowMenuItem"
+                      Header="🔵 显示边缘阴影"
+                      IsCheckable="True"
+                      IsChecked="True"
+                      Click="ToggleGlow_Click"/>
+            <Separator/>
             <MenuItem Header="❌ 关闭" InputGestureText="Esc" Click="CloseWindow_Click"/>
         </ContextMenu>
     </Window.ContextMenu>
 
     <Grid>
-        <!-- 图像 -->
-        <Border Background="Transparent" Padding="0">
+        <!-- 使用 Border 包裹 Image，用于应用阴影效果 -->
+        <Border x:Name="GlowBorder"
+        Background="Transparent"
+        Padding="3"
+        Effect="{StaticResource GlowEffect}">
+
             <Image x:Name="ImageControl"
-                   RenderOptions.BitmapScalingMode="NearestNeighbor"
-                   Stretch="None"
-                   SnapsToDevicePixels="True"
-                   ToolTip="右键菜单操作"/>
+           RenderOptions.BitmapScalingMode="NearestNeighbor"
+           Stretch="None"
+                SnapsToDevicePixels="True"
+           ToolTip="右键菜单操作"/>
+
         </Border>
 
         <!-- 缩放百分比提示 -->
