@@ -23,7 +23,7 @@
     <!-- 全局右键菜单 -->
     <Window.ContextMenu>
         <ContextMenu>
-            <MenuItem Header="💾 保存图片11..." Click="SaveImage_Click"/>
+            <MenuItem Header="💾 保存图片" Click="SaveImage_Click"/>
             <MenuItem Header="📖 OCR 识别" Click="OcrRecognize_Click"/>
             <MenuItem Header="📋 复制到剪贴板" Click="CopyToClipboard_Click"/>
             <Separator/>

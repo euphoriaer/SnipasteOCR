@@ -17,7 +17,7 @@
         <Path Name="HoleMask" Fill="#80000000" />
 
         <Rectangle Name="SelectionRect"
-           Stroke="#80FFFFFF"
+           Stroke="#80000000"
             StrokeThickness="1"
             StrokeDashArray="3 1"
            Visibility="Collapsed" />

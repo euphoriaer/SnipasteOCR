@@ -190,7 +190,7 @@ namespace SnipasteOCR
             try
             {
                 Clipboard.SetImage(Image);
-                MessageBox.Show("已复制到剪贴板", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                
             }
             catch (Exception ex)
             {
