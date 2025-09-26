@@ -279,5 +279,14 @@ namespace SnipasteOCR
                 GlowBorder.Effect = null;
             }
         }
+
+        private async void Transform_Click(object sender, RoutedEventArgs e)
+        {
+            var progressPopup = ShowOcrResult("正在翻译...");
+            var result = await OcrHelper.Recognize(Image);
+            var translated = await TranslationManager.TranslateAsync(result);
+            progressPopup.SetText($"原文：{result}\n\n\n译文：{translated}");
+      
+        }
     }
 }
